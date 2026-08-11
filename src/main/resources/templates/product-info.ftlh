@@ -16,8 +16,9 @@
 <b>Описание: </b>${product.description}<br>
 <b>Цена: </b>${product.price}<br>
 <b>Город: </b>${product.city}<br>
-<b>Автор </b>${product.user.name}<br>
-<hr>Удалить данный товар</h3>
+<b>Автор: </b><a href="/user/${product.user.id}">
+    ${product.user.name}
+</a>
 <form action="/product/delete/${product.id}" method="post">
     <input type="hidden" name="_csrf" value="${_csrf.token}">
     <input type="submit" value="Удалить товар"/>

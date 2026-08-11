@@ -23,7 +23,7 @@ public class User implements UserDetails {
     // давать бан
     private boolean active;
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "image_id")
+    @JoinColumn(name = "avatar")
     private Image avatar;
     private  String password;
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
@@ -34,9 +34,14 @@ public class User implements UserDetails {
     private List<Product> products = new ArrayList<>();
     private LocalDateTime dateOfCreated;
 
+    @PrePersist
     private void init() {
         dateOfCreated = LocalDateTime.now();
     }
+
+
+    public boolean isAdmin() {return roles.contains(Role.ROLE_ADMIN); }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -72,4 +77,6 @@ public class User implements UserDetails {
     public String getPassword() {
         return password;
     }
+
+
 }

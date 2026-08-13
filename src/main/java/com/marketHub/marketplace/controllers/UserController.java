@@ -9,6 +9,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.security.Principal;
 
 @Controller
 @RequiredArgsConstructor
@@ -17,7 +20,10 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/login")
-    public String login() {
+    public String login(@RequestParam(name = "error", required = false) String error, Model model) {
+        if (error != null) {
+            model.addAttribute("errorMessage", "Неверный email или пароль");
+        }
         return "login";
     }
 
@@ -41,10 +47,11 @@ public class UserController {
     }
 
     @GetMapping("/user/{user}")
-    public String userUnfo(@PathVariable("user") User user, Model model)
+    public String userUnfo(@PathVariable("user") User user, Model model, Principal principal)
     {
         model.addAttribute("user", user);
         model.addAttribute("products",user.getProducts());
+        model.addAttribute("currentUser", userService.getUserByPrincipal(principal));
         return "user-info";
     }
 }

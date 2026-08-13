@@ -24,13 +24,14 @@ public class ProductController {
     @GetMapping("/")
     public String products(@RequestParam(name = "title", required = false) String title, Model model, Principal principal) {
         model.addAttribute("products", productService.listProducts(title));
-        model.addAttribute("user", productService.getUserByPrincipal(principal));
+        model.addAttribute("currentUser", productService.getUserByPrincipal(principal));
         return "products";
     }
 
     @GetMapping("/product/{id}")
-    public String productInfo(@PathVariable Long id, Model model){
+    public String productInfo(@PathVariable Long id, Model model, Principal principal){
         model.addAttribute("product", productService.getProductById(id));
+        model.addAttribute("currentUser", productService.getUserByPrincipal(principal));
         return "product-info";
     }
 

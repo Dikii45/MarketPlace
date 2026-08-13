@@ -1,25 +1,38 @@
+<#import "common.ftlh" as c>
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>BUYSELL</title>
+    <@c.head subtitle=user.name/>
 </head>
 <body>
-<h1>BUYSELL</h1>
-<h3>Подробная информация о пользователе: ${user.name}</h3>
-<b>Номер телефона: </b> ${user.phoneNumber!"Не указан"}<br>
-<b>Email: </b> ${user.email}<br>
 
-<hr>
-<h4>Товары пользователя ${user.name}</h4>
-<#list products as product>
-    <div>
-        <p><b> ${product.title} </b> ${product.price} | <a href="/product/${product.id}">Подробнее...</a></p>
-    </div>
-<#else>
-    <h3>Товаров нет</h3>
-</#list>
+<@c.topbar currentUser=currentUser/>
+
+<div class="page-head">
+    <h1 class="display">${user.name}</h1>
+    <p><b>Email:</b> ${user.email} · <b>Телефон:</b> ${user.phoneNumber!"Не указан"}</p>
+</div>
+
 <#if errorMessage??>
-    <h2 style="color: red">${errorMessage}</h2>
+    <div class="alert" style="margin:0 28px;">${errorMessage}</div>
 </#if>
+
+<div class="filters">
+    <h2>Товары пользователя ${user.name}</h2>
+    <span class="count mono">${products?size} объявлений</span>
+</div>
+
+<#if products?has_content>
+<div class="grid">
+    <#list products as product>
+        <@c.productCard product=product/>
+    </#list>
+</div>
+<#else>
+<div class="empty-state">Товаров нет</div>
+</#if>
+
+<@c.footer/>
+
 </body>
 </html>

@@ -1,48 +1,65 @@
+<#import "common.ftlh" as c>
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>BUYSELL</title>
+    <@c.head subtitle="Панель администратора"/>
 </head>
 <body>
-<h1>BUYSELL</h1>
-<h4>Привет админ</h4>
 
-<style>
-    table, th, td {
-        border: 1px solid black;
-    }
-</style>
+<@c.topbar currentUser=currentUser showSearch=false/>
 
-<table>
+<div class="page-head">
+    <h1 class="display">Панель администратора</h1>
+    <p>Пользователи, роли и модерация аккаунтов.</p>
+</div>
 
-    <tr>
-        <th>Email</th>
-        <th>Номер телефона</th>
-        <th>Активность</th>
-        <th>Роли</th>
-        <th>Бан</th>
-        <th>Редоктирование</th>
-        <th>Подробная информация</th>
-    </tr>
-    <#list users as user>
-    <tr>
-        <th>${user.email}</th>
-        <th>${user.phoneNumber!"Не указан"}</th>
-        <th>${user.active?c}</th>
-        <td>
-            <#list user.roles as role>
-                ${role}
+<div class="table-card">
+    <div class="table-scroll">
+        <table class="data">
+            <thead>
+            <tr>
+                <th>Email</th>
+                <th>Номер телефона</th>
+                <th>Активность</th>
+                <th>Роли</th>
+                <th>Бан</th>
+                <th>Редактирование</th>
+                <th>Подробная информация</th>
+            </tr>
+            </thead>
+            <tbody>
+            <#list users as user>
+                <tr>
+                    <td>${user.email}</td>
+                    <td>${user.phoneNumber!"Не указан"}</td>
+                    <td>
+                        <#if user.active>
+                            <span class="status-dot active">Активен</span>
+                        <#else>
+                            <span class="status-dot banned">Забанен</span>
+                        </#if>
+                    </td>
+                    <td>
+                        <#list user.roles as role>
+                            <span class="role-badge">${role}</span>
+                        </#list>
+                    </td>
+                    <td>
+                        <form action="/admin/user/ban/${user.id}" method="post">
+                            <input type="hidden" name="_csrf" value="${_csrf.token}">
+                            <button class="btn-sm danger" type="submit">Бан</button>
+                        </form>
+                    </td>
+                    <td><a class="btn-sm ghost" href="/admin/user/edit/${user.id}">Редактирование</a></td>
+                    <td><a class="btn-sm ghost" href="/user/${user.id}">Подробная информация</a></td>
+                </tr>
             </#list>
-        </td>
-        <th>
-            <form action="/admin/user/ban/${user.id}" method="post">
-                <input type="hidden" name="_csrf" value="${_csrf.token}">
-                <input type="submit" value="Бан">
-            </form>
-        </th>
-        <th><a href="/admin/user/edit/${user.id}">Редактирование</a></th>
-        <th><a href="/user/${user.id}">Подробная инфомация</a></th>
-        </#list>
-</table>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<@c.footer/>
+
 </body>
 </html>

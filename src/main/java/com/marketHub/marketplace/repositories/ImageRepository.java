@@ -1,7 +1,6 @@
 package com.marketHub.marketplace.repositories;
 
 import com.marketHub.marketplace.models.Image;
-import com.marketHub.marketplace.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ImageRepository extends JpaRepository<Image, Long> {

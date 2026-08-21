@@ -1,13 +1,18 @@
 package com.marketHub.marketplace.services;
 
+import com.marketHub.marketplace.models.Image;
 import com.marketHub.marketplace.models.User;
 import com.marketHub.marketplace.models.enums.Role;
 import com.marketHub.marketplace.repositories.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
@@ -69,5 +74,53 @@ public class UserService {
         }
 
         userRepository.save(user);
+    }
+
+    public boolean updateProfile(User user, String name, String phoneNumber) {
+        if (name == null || name.isBlank()) return false;
+        if(phoneNumber != null && phoneNumber.isBlank()){
+            phoneNumber = null;
+        }
+        user.setName(name.trim());
+        user.setPhoneNumber(phoneNumber != null ? phoneNumber.trim() : null);
+        userRepository.save(user);
+        return true;
+    }
+
+    public boolean setAvatar(User user, MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) return false;
+            user.setAvatar(toImageEntity(file));
+            userRepository.save(user);
+            return true;
+    }
+
+
+    private Image toImageEntity(MultipartFile file) throws IOException {
+        Image image = new Image();
+        image.setName(file.getName());
+        image.setOriginalFileName(file.getOriginalFilename());
+        image.setContentType(file.getContentType());
+        image.setSize(file.getSize());
+        image.setBytes(file.getBytes());
+        return image;
+    }
+
+
+    public boolean passwordMatch(String currentPassword, User user) {
+        return passwordEncoder.matches(currentPassword, user.getPassword())? true : false;
+    }
+
+    public void setPassword(User user,String newPassword){
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    public void deleteUser(User user){
+        userRepository.delete(user);
+    }
+
+
+    public User getUserByID(long id){
+       return userRepository.findById(id);
     }
 }

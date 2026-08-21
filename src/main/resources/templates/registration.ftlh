@@ -34,6 +34,10 @@
                 <label for="password">Пароль</label>
                 <input type="password" id="password" name="password">
             </div>
+            <div class="form-field">
+                <label for="confirmPassword">Повторите пароль</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required data-match="#password">
+            </div>
             <input type="hidden" name="_csrf" value="${_csrf.token}">
             <button class="btn accent" type="submit">Зарегистрироваться</button>
         </form>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>BUYSELL<#if subtitle?has_content> — ${subtitle}</#if></title>
     <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/site.js" defer></script>
 </#macro>
 
 <#macro topbar currentUser={} showSearch=true searchValue="">
@@ -18,14 +19,41 @@
     </#if>
     <div class="account">
         <#if currentUser?? && currentUser.email??>
-            <span class="name">Продавец: <b>${currentUser.name}</b></span>
-            <#if currentUser.isAdmin()>
-                <a class="pill-link admin" href="/admin">Панель администратора</a>
-            </#if>
-            <form action="/logout" method="post" style="display:inline;">
-                <input type="hidden" name="_csrf" value="${_csrf.token}">
-                <button class="logout-btn" type="submit">Выйти</button>
-            </form>
+            <#assign initial = (currentUser.name?has_content)?then(currentUser.name?substring(0,1)?upper_case, "?")>
+            <details class="account-menu">
+                <summary class="account-trigger" aria-label="Аккаунт">
+                    <#if currentUser.avatar??>
+                        <span class="account-avatar"><img src="/images/${currentUser.avatar.id}" alt=""></span>
+                    <#else>
+                        <span class="account-avatar">${initial}</span>
+                    </#if>
+                </summary>
+                <div class="account-menu__panel">
+                    <div class="account-menu__head">
+                        <#if currentUser.avatar??>
+                            <span class="account-avatar account-avatar--lg"><img src="/images/${currentUser.avatar.id}" alt=""></span>
+                        <#else>
+                            <span class="account-avatar account-avatar--lg">${initial}</span>
+                        </#if>
+                        <div class="account-menu__who">
+                            <div class="account-menu__name">${currentUser.name}</div>
+                            <div class="account-menu__email mono">${currentUser.email}</div>
+                        </div>
+                    </div>
+                    <#if currentUser.isAdmin()>
+                        <a class="account-menu__item" href="/admin">Панель администратора</a>
+                    </#if>
+                    <#if !currentUser.isAdmin()>
+                        <a class="account-menu__item" href="/user/${currentUser.id}">Ваши товары</a>
+                    </#if>
+                    <a class="account-menu__item" href="/account">Аккаунт</a>
+                    <a class="account-menu__item" href="/orders">Заказы</a>
+                    <form action="/logout" method="post">
+                        <input type="hidden" name="_csrf" value="${_csrf.token}">
+                        <button class="account-menu__item account-menu__item--danger" type="submit">Выйти</button>
+                    </form>
+                </div>
+            </details>
         <#else>
             <a class="pill-link" href="/login">Войти</a>
         </#if>

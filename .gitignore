@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local runtime / tooling ###
+run.log
+run-err.log
+run.pid
+.mcp.json

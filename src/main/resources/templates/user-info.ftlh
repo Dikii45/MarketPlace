@@ -22,6 +22,39 @@
     <span class="count mono">${products?size} объявлений</span>
 </div>
 
+<#if currentUser?? && currentUser.id == user.id && !currentUser.isAdmin()>
+<details class="add-product">
+    <summary class="btn accent">Добавить товар</summary>
+    <form class="add-product__form" action="/product/create" method="post" enctype="multipart/form-data">
+        <div class="form-grid">
+            <div class="form-field span-2">
+                <label for="title">Название</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            <div class="form-field span-2">
+                <label for="description">Описание</label>
+                <textarea id="description" name="description" required></textarea>
+            </div>
+            <div class="form-field">
+                <label for="price">Цена</label>
+                <input type="number" id="price" name="price" min="0" required>
+            </div>
+            <div class="form-field">
+                <label for="city">Город</label>
+                <input type="text" id="city" name="city" required>
+            </div>
+            <div class="form-field span-2">
+                <label for="files">Фото (до 10 шт.)</label>
+                <input type="file" id="files" name="files" accept="image/*" multiple required data-max-files="10" data-preview="filesPreview">
+                <div class="file-preview" id="filesPreview"></div>
+            </div>
+        </div>
+        <input type="hidden" name="_csrf" value="${_csrf.token}">
+        <button class="btn accent" type="submit">Опубликовать</button>
+    </form>
+</details>
+</#if>
+
 <#if products?has_content>
 <div class="grid">
     <#list products as product>

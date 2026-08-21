@@ -13,6 +13,13 @@
     <p>Пользователи, роли и модерация аккаунтов.</p>
 </div>
 
+<#if errorMessage??>
+    <div class="alert">${errorMessage}</div>
+</#if>
+<#if successMessage??>
+    <div class="alert alert--ok">${successMessage}</div>
+</#if>
+
 <div class="table-card">
     <div class="table-scroll">
         <table class="data">
@@ -22,9 +29,10 @@
                 <th>Номер телефона</th>
                 <th>Активность</th>
                 <th>Роли</th>
-                <th>Бан</th>
-                <th>Редактирование</th>
-                <th>Подробная информация</th>
+                <th>Редактирование активности</th>
+                <th>Редактирование Роли</th>
+                <th>Подробная информация(Перейти на строничку)</th>
+                <th>Удаление</th>
             </tr>
             </thead>
             <tbody>
@@ -47,11 +55,17 @@
                     <td>
                         <form action="/admin/user/ban/${user.id}" method="post">
                             <input type="hidden" name="_csrf" value="${_csrf.token}">
-                            <button class="btn-sm danger" type="submit">Бан</button>
+                            <button class="btn-sm danger" type="submit">Изменить активность</button>
                         </form>
                     </td>
                     <td><a class="btn-sm ghost" href="/admin/user/edit/${user.id}">Редактирование</a></td>
                     <td><a class="btn-sm ghost" href="/user/${user.id}">Подробная информация</a></td>
+                    <td>
+                        <form action="/admin/user/delete/${user.id}" method="post" data-confirm="Удалить аккаунт ${user.email}? Это действие необратимо.">
+                            <input type="hidden" name="_csrf" value="${_csrf.token}">
+                            <button class="btn-sm danger" type="submit">Удалить</button>
+                        </form>
+                    </td>
                 </tr>
             </#list>
             </tbody>

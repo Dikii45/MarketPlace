@@ -22,30 +22,19 @@ public class ProductService {
     private final UserRepository userRepository;
 
     public List<Product> listProducts(String title) {
-        if (title != null) return productRepository.findByTitle(title);
+        if (title != null && !title.isBlank()) return productRepository.findByTitleContainingIgnoreCase(title.trim());
         return productRepository.findAll();
     }
 
-    public void saveProduct(Principal principal, Product product, MultipartFile file1, MultipartFile file2, MultipartFile file3) throws IOException {
+    public void saveProduct(Principal principal, Product product, List<MultipartFile> files) throws IOException {
         product.setUser(getUserByPrincipal(principal));
-        Image image1;
-        Image image2;
-        Image image3;
-        if(file1.getSize() != 0){
-            image1 = toImageEntity(file1);
-            image1.setPreviewImage(true);
-            product.addImageToProduct(image1);
-        }
 
-        if(file2.getSize() != 0){
-            image2 = toImageEntity(file2);
-            product.addImageToProduct(image2);
-        }
+            for(MultipartFile file : files){
+                Image image;
+                image = toImageEntity(file);
+                product.addImageToProduct(image);
+            }
 
-        if(file3.getSize() != 0){
-            image3 = toImageEntity(file3);
-            product.addImageToProduct(image3);
-        }
 
         log.info("Saving new Product.Title: {}; Author: {}", product.getTitle(),principal.getName());
 

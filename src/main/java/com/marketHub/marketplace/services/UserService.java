@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -122,5 +123,14 @@ public class UserService {
 
     public User getUserByID(long id){
        return userRepository.findById(id);
+    }
+
+    // обновляем отметку активности не чаще раза в 30 секунд, чтобы не писать в БД на каждый запрос
+    public void touch(User user) {
+        LocalDateTime now = LocalDateTime.now();
+        if (user.getLastActiveAt() == null || user.getLastActiveAt().isBefore(now.minusSeconds(30))) {
+            user.setLastActiveAt(now);
+            userRepository.save(user);
+        }
     }
 }

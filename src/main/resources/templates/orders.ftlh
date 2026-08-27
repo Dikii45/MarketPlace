@@ -8,10 +8,7 @@
 
 <@c.topbar currentUser=currentUser showSearch=false/>
 
-<div class="page-head">
-    <h1 class="display">Заказы</h1>
-    <p>Ваши покупки и продажи.</p>
-</div>
+<@c.pageBanner title="Заказы" subtitle="Ваши покупки и продажи."/>
 
 <#if errorMessage??>
     <div class="alert" style="margin:0 28px;">${errorMessage}</div>
@@ -24,35 +21,56 @@
     <#return status.name() == "RECEIVED" || status.name() == "CANCELLED">
 </#function>
 
+<#function statusLabel status>
+    <#switch status.name()>
+        <#case "NEW"><#return "Новый">
+        <#case "CONFIRMED"><#return "Подтверждён">
+        <#case "SENT"><#return "Отправлен">
+        <#case "RECEIVED"><#return "Получен">
+        <#case "CANCELLED"><#return "Отменён">
+        <#default><#return status.name()>
+    </#switch>
+</#function>
+
 <#-- одна карточка заказа (покупки) -->
 <#macro orderCard order variant>
 <#assign hasCancelled = false>
 <#list order.items as item>
     <#if item.status.name() == "CANCELLED"><#assign hasCancelled = true></#if>
 </#list>
+<#if variant == "current">
+    <#assign statusClass = "pending"><#assign pillLabel = "В обработке">
+<#elseif hasCancelled>
+    <#assign statusClass = "cancelled"><#assign pillLabel = "Отменён">
+<#else>
+    <#assign statusClass = "done"><#assign pillLabel = "Завершён">
+</#if>
 <div class="order-card">
     <div class="order-card__head">
-        <span class="order-card__id">
-            <#if variant == "current">
-                <span class="order-status-icon order-status-icon--pending" title="В обработке">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
-                </span>
-            <#elseif hasCancelled>
-                <span class="order-status-icon order-status-icon--cancelled" title="Отменён">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><circle cx="12" cy="16" r="0.5" fill="currentColor"/></svg>
-                </span>
+        <span class="order-status-icon order-status-icon--${statusClass}">
+            <#if statusClass == "pending">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+            <#elseif statusClass == "cancelled">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><circle cx="12" cy="16" r="0.5" fill="currentColor"/></svg>
             <#else>
-                <span class="order-status-icon order-status-icon--done" title="Завершён">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
-                </span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
             </#if>
-            <span class="mono">Заказ #${order.id}</span>
         </span>
-        <span class="mono">${order.dateOfCreated?substring(0,16)?replace("T"," ")}</span>
+        <div class="order-card__title">
+            <span class="order-card__id mono">Заказ #${order.id}</span>
+            <span class="order-card__date mono">${order.dateOfCreated?substring(0,16)?replace("T"," ")}</span>
+        </div>
+        <span class="order-status-pill order-status-pill--${statusClass}">${pillLabel}</span>
     </div>
     <div class="order-card__meta">
-        <span><b>Адрес:</b> ${order.deliveryAddress}</span>
-        <span><b>Оплата:</b> ${order.paymentMethod} · <span class="status-dot ${order.paymentStatus?lower_case}">${order.paymentStatus}</span></span>
+        <span class="order-card__meta-item">
+            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/></svg>
+            ${order.deliveryAddress}
+        </span>
+        <span class="order-card__meta-item">
+            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            ${order.paymentMethod} · <span class="status-dot ${order.paymentStatus?lower_case}">${order.paymentStatus}</span>
+        </span>
     </div>
     <div class="table-scroll">
         <table class="data">
@@ -67,10 +85,34 @@
             <tbody>
             <#list order.items as item>
                 <tr>
-                    <td><a class="btn-sm ghost" href="/product/${item.product.id}">${item.product.title}</a></td>
+                    <td>
+                        <span class="cell-with-icon">
+                            <span class="row-icon">
+                                <#if item.product.previewImageId??>
+                                    <img src="/images/${item.product.previewImageId}" alt="">
+                                <#elseif item.product.images?has_content>
+                                    <img src="/images/${item.product.images[0].id}" alt="">
+                                <#else>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 7l9-4 9 4"/><path d="M8 11v4M16 11v4"/></svg>
+                                </#if>
+                            </span>
+                            <a class="btn-sm ghost" href="/product/${item.product.id}">${item.product.title}</a>
+                        </span>
+                    </td>
                     <td class="mono">${item.quantity}</td>
-                    <td>${item.product.user.name}</td>
-                    <td><span class="status-dot ${item.status?lower_case}">${item.status}</span></td>
+                    <td>
+                        <span class="cell-with-icon">
+                            <span class="row-icon row-icon--person">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20c1.6-3.6 5-5.5 7.5-5.5s5.9 1.9 7.5 5.5"/></svg>
+                            </span>
+                            ${item.product.user.name}
+                            <a class="chat-btn" href="/chat/${item.product.user.id}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.6 8.6 0 0 1-4-1L3 20l1-5.5a8.38 8.38 0 0 1-1-4A8.5 8.5 0 0 1 21 11.5z"/></svg>
+                                Чат
+                            </a>
+                        </span>
+                    </td>
+                    <td><span class="status-dot ${item.status?lower_case}">${statusLabel(item.status)}</span></td>
                 </tr>
             </#list>
             </tbody>
@@ -82,13 +124,37 @@
 <#-- одна строка продажи -->
 <#macro saleRow item statuses>
 <tr>
-    <td><a class="btn-sm ghost" href="/product/${item.product.id}">${item.product.title}</a></td>
+    <td>
+        <span class="cell-with-icon">
+            <span class="row-icon">
+                <#if item.product.previewImageId??>
+                    <img src="/images/${item.product.previewImageId}" alt="">
+                <#elseif item.product.images?has_content>
+                    <img src="/images/${item.product.images[0].id}" alt="">
+                <#else>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 7l9-4 9 4"/><path d="M8 11v4M16 11v4"/></svg>
+                </#if>
+            </span>
+            <a class="btn-sm ghost" href="/product/${item.product.id}">${item.product.title}</a>
+        </span>
+    </td>
     <td class="mono">${item.quantity}</td>
-    <td>${item.order.buyer.name}</td>
+    <td>
+        <span class="cell-with-icon">
+            <span class="row-icon row-icon--person">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20c1.6-3.6 5-5.5 7.5-5.5s5.9 1.9 7.5 5.5"/></svg>
+            </span>
+            ${item.order.buyer.name}
+            <a class="chat-btn" href="/chat/${item.order.buyer.id}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.6 8.6 0 0 1-4-1L3 20l1-5.5a8.38 8.38 0 0 1-1-4A8.5 8.5 0 0 1 21 11.5z"/></svg>
+                Чат
+            </a>
+        </span>
+    </td>
     <td class="addr-cell">${item.order.deliveryAddress}</td>
     <td>
         <#if item.status.name() == "CANCELLED">
-            <span class="status-dot ${item.status?lower_case}">${item.status}</span>
+            <span class="status-dot ${item.status?lower_case}">${statusLabel(item.status)}</span>
         <#else>
         <form class="order-status-form" action="/orders/items/${item.id}/status" method="post">
             <select name="status">
@@ -110,7 +176,7 @@
                             <#assign canMoveTo = (s.name() == "CANCELLED")>
                             <#break>
                     </#switch>
-                    <option value="${s}" <#if isCurrent>selected</#if> <#if !isCurrent && !canMoveTo>disabled</#if>>${s}</option>
+                    <option value="${s}" <#if isCurrent>selected</#if> <#if !isCurrent && !canMoveTo>disabled</#if>>${statusLabel(s)}</option>
                 </#list>
             </select>
             <input type="hidden" name="_csrf" value="${_csrf.token}">

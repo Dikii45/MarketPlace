@@ -26,6 +26,7 @@ public class ProductService {
         return productRepository.findByQuantityGreaterThanAndDeletedFalse(0);
     }
 
+
     public boolean restockProduct(Long productId, int amount, Principal principal) {
         if (amount <= 0) return false;
 
@@ -36,6 +37,7 @@ public class ProductService {
         if (user == null || user.getId() == null) return false;
         if (!user.isAdmin() && !product.getUser().getId().equals(user.getId())) return false;
 
+
         product.setQuantity(product.getQuantity() + amount);
         productRepository.save(product);
         return true;
@@ -45,6 +47,7 @@ public class ProductService {
         product.setUser(getUserByPrincipal(principal));
         product.setQuantity(quantity);
 
+        //из MultipartFile в Image
             for(MultipartFile file : files){
                 Image image;
                 image = toImageEntity(file);
@@ -85,6 +88,8 @@ public class ProductService {
         if (!user.isAdmin() && !product.getUser().getId().equals(user.getId())) return false;
 
         log.info("Delete {}", id);
+        // ометка что товар удален
+        product.setQuantity(0);
         product.setDeleted(true);
         productRepository.save(product);
         return true;

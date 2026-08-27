@@ -52,11 +52,11 @@
                     <#if currentUser.isAdmin()>
                         <a class="account-menu__item" href="/admin">Панель администратора</a>
                     </#if>
+                    <a class="account-menu__item" href="/account">Аккаунт</a>
+                    <a class="account-menu__item" href="/orders">Заказы</a>
                     <#if !currentUser.isAdmin()>
                         <a class="account-menu__item" href="/user/${currentUser.id}">Ваши товары</a>
                     </#if>
-                    <a class="account-menu__item" href="/account">Аккаунт</a>
-                    <a class="account-menu__item" href="/orders">Заказы</a>
                     <form action="/logout" method="post">
                         <input type="hidden" name="_csrf" value="${_csrf.token}">
                         <button class="account-menu__item account-menu__item--danger" type="submit">Выйти</button>
@@ -68,6 +68,34 @@
         </#if>
     </div>
 </header>
+</#macro>
+
+<#macro pageBanner title subtitle="">
+<div class="page-banner">
+    <div class="page-banner__bg" aria-hidden="true">
+        <svg viewBox="0 0 1440 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="bannerSky" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#0a2f42"/>
+                    <stop offset="55%" stop-color="#12616d"/>
+                    <stop offset="100%" stop-color="#1f9089"/>
+                </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="1440" height="220" fill="url(#bannerSky)"/>
+            <polygon points="0,140 120,90 260,130 420,80 600,120 780,70 960,110 1140,80 1320,115 1440,90 1440,220 0,220" fill="#124f59" opacity="0.7"/>
+            <polygon points="0,182 90,112 200,182" fill="#0f434c"/>
+            <polygon points="520,192 650,92 660,192" fill="#123f47"/>
+            <polygon points="660,192 650,92 800,192" fill="#2c8f89"/>
+            <polygon points="1050,186 1160,112 1260,186" fill="#123f47"/>
+            <polygon points="1260,186 1160,112 1360,186" fill="#2c8f89"/>
+            <polygon points="0,200 40,185 80,198 120,180 160,196 200,178 240,195 280,177 320,194 360,176 400,195 440,178 480,196 520,180 560,197 600,179 640,196 680,178 720,195 760,177 800,194 840,178 880,196 920,180 960,197 1000,179 1040,195 1080,177 1120,194 1160,178 1200,196 1240,180 1280,197 1320,179 1360,196 1400,180 1440,195 1440,220 0,220" fill="#08222b"/>
+        </svg>
+    </div>
+    <div class="page-banner__content">
+        <h1 class="display">${title}</h1>
+        <#if subtitle?has_content><p>${subtitle}</p></#if>
+    </div>
+</div>
 </#macro>
 
 <#macro productCard product>

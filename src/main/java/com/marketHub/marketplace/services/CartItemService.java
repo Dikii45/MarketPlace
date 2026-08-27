@@ -28,8 +28,18 @@ public class CartItemService {
     private final ProductRepository productRepository;
 
 
+    // отдаёт корзину, попутно вычищая записи на товары, которые продавец успел удалить
+    @Transactional
     public List<CartItem> getCartItems(User user) {
-        return cartItemRepository.findAllByUser(user);
+        List<CartItem> items = cartItemRepository.findAllByUser(user);
+
+        List<CartItem> stale = items.stream().filter(i -> i.getProduct().isDeleted()).toList();
+        if (stale.isEmpty()) {
+            return items;
+        }
+
+        cartItemRepository.deleteAll(stale);
+        return items.stream().filter(i -> !i.getProduct().isDeleted()).toList();
     }
 
 
@@ -92,6 +102,7 @@ public class CartItemService {
 
 
         //либо заказываем ровно то количество, что выбрал покупатель, либо не заказываем вообще
+        //(getCartItems уже вычистил позиции на удалённые продавцом товары)
         for (CartItem cartItem : cartItems) {
             if (cartItem.getQuantity() > cartItem.getProduct().getQuantity()) {
                 return false;

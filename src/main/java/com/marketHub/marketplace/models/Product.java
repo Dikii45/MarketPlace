@@ -39,6 +39,7 @@ public class Product {
     private User user;
     private LocalDateTime dateOfCreated;
     private int quantity;
+    // пометка что товар удален, т.к. физически удалить не возможно
     private boolean deleted = false;
 
 

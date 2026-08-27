@@ -24,4 +24,13 @@ public class GlobalModelAttributes {
         // возрващаем кличетсво товаров которые в корзине
         return cartItemService.getCartItems(user).size();
     }
+
+    // отмечаем пользователя активным на каждый запрос — на этом строится индикатор "онлайн" в чате
+    @ModelAttribute
+    public void touchLastActive(Principal principal) {
+        User user = userService.getUserByPrincipal(principal);
+        if (user != null) {
+            userService.touch(user);
+        }
+    }
 }

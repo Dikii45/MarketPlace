@@ -33,6 +33,7 @@ public class User implements UserDetails {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "user")
     private List<Product> products = new ArrayList<>();
     private LocalDateTime dateOfCreated;
+    private LocalDateTime lastActiveAt;
 
     @PrePersist
     private void init() {

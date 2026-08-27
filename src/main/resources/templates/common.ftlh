@@ -8,8 +8,8 @@
     <script src="/js/site.js" defer></script>
 </#macro>
 
-<#macro topbar currentUser={} showSearch=true searchValue="">
-<header class="top">
+<#macro topbar currentUser={} showSearch=true searchValue="" variant="">
+<header class="top<#if variant?has_content> top--${variant}</#if>">
     <a class="wordmark display" href="/"><span class="postmark"></span>BUYSELL</a>
     <#if showSearch>
     <form class="search" role="search" action="/" method="get">
@@ -18,6 +18,15 @@
     </form>
     </#if>
     <div class="account">
+        <#if currentUser?? && currentUser.email?? && !currentUser.isAdmin()>
+            <a class="cart-link" href="/cart" aria-label="Корзина">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/>
+                    <path d="M1.5 1.5h3l2.5 13.6a2 2 0 0 0 2 1.65h8.9a2 2 0 0 0 1.97-1.66L21.5 6.5H5.4"/>
+                </svg>
+                <#if cartCount?? && cartCount gt 0><span class="cart-badge mono">${cartCount}</span></#if>
+            </a>
+        </#if>
         <#if currentUser?? && currentUser.email??>
             <#assign initial = (currentUser.name?has_content)?then(currentUser.name?substring(0,1)?upper_case, "?")>
             <details class="account-menu">
@@ -74,11 +83,14 @@
             </svg>
         </#if>
         <div class="card__stamp mono">${product.price?string("#,##0")} ₽</div>
+        <#if product.quantity <= 0>
+            <div class="card__sold-out">Товар закончился</div>
+        </#if>
     </div>
     <div class="card__perf"></div>
     <div class="card__body">
         <div class="card__title">${product.title}</div>
-        <div class="card__meta mono"><span>${product.city}</span><span>№ ${product.id}</span></div>
+        <div class="card__meta mono"><span>${product.city}</span><span>#${product.id}</span></div>
         <div class="card__go">Подробнее →</div>
     </div>
 </a>

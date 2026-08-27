@@ -22,12 +22,28 @@ public class ProductService {
     private final UserRepository userRepository;
 
     public List<Product> listProducts(String title) {
-        if (title != null && !title.isBlank()) return productRepository.findByTitleContainingIgnoreCase(title.trim());
-        return productRepository.findAll();
+        if (title != null && !title.isBlank()) return productRepository.findByTitleContainingIgnoreCaseAndQuantityGreaterThanAndDeletedFalse(title.trim(), 0);
+        return productRepository.findByQuantityGreaterThanAndDeletedFalse(0);
     }
 
-    public void saveProduct(Principal principal, Product product, List<MultipartFile> files) throws IOException {
+    public boolean restockProduct(Long productId, int amount, Principal principal) {
+        if (amount <= 0) return false;
+
+        Product product = getProductById(productId);
+        if (product == null) return false;
+
+        User user = getUserByPrincipal(principal);
+        if (user == null || user.getId() == null) return false;
+        if (!user.isAdmin() && !product.getUser().getId().equals(user.getId())) return false;
+
+        product.setQuantity(product.getQuantity() + amount);
+        productRepository.save(product);
+        return true;
+    }
+
+    public void saveProduct(Principal principal, Product product, List<MultipartFile> files, int quantity) throws IOException {
         product.setUser(getUserByPrincipal(principal));
+        product.setQuantity(quantity);
 
             for(MultipartFile file : files){
                 Image image;
@@ -60,9 +76,18 @@ public class ProductService {
         return image;
     }
 
-    public void deleteProducts(Long id) {
+    public boolean deleteProducts(Long id, Principal principal) {
+        Product product = getProductById(id);
+        if (product == null) return false;
+
+        User user = getUserByPrincipal(principal);
+        if (user == null || user.getId() == null) return false;
+        if (!user.isAdmin() && !product.getUser().getId().equals(user.getId())) return false;
+
         log.info("Delete {}", id);
-        productRepository.deleteById(id);
+        product.setDeleted(true);
+        productRepository.save(product);
+        return true;
     }
 
     public Product getProductById(Long id) {

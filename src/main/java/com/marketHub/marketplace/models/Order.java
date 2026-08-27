@@ -1,10 +1,14 @@
 package com.marketHub.marketplace.models;
 
 import com.marketHub.marketplace.models.enums.OrderStatus;
+import com.marketHub.marketplace.models.enums.PaymentMethod;
+import com.marketHub.marketplace.models.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Entity
@@ -14,14 +18,21 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status = OrderStatus.NEW;
-    private LocalDateTime dateOfCreated;
 
     @ManyToOne
-    private Product product;
-    @ManyToOne
     private User buyer;
+
+    private LocalDateTime dateOfCreated;
+    private String deliveryAddress;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
+
+    @OneToMany(mappedBy = "order")
+    private List<OrderItem> items = new ArrayList<>();
 
     @PrePersist
     private  void init(){

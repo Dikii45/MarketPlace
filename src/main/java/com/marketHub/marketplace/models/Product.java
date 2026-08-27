@@ -38,6 +38,8 @@ public class Product {
     @JoinColumn
     private User user;
     private LocalDateTime dateOfCreated;
+    private int quantity;
+    private boolean deleted = false;
 
 
     @PrePersist

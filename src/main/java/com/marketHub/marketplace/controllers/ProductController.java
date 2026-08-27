@@ -33,7 +33,12 @@ public class ProductController {
 
     @GetMapping("/product/{id}")
     public String productInfo(@PathVariable Long id, Model model, Principal principal){
-        model.addAttribute("product", productService.getProductById(id));
+        // проверка вдруг кто то решит зайти на продукт которого нет (или удалённый)
+        Product product = productService.getProductById(id);
+        if(product == null || product.isDeleted()){
+            return "redirect:/";
+        }
+        model.addAttribute("product", product);
         model.addAttribute("currentUser", productService.getUserByPrincipal(principal));
         return "product-info";
     }
@@ -41,7 +46,7 @@ public class ProductController {
 
     // кнопка создать
     @PostMapping("/product/create")
-    public String createProduct(Product product, @RequestParam("files") List<MultipartFile> files, Principal principal, RedirectAttributes redirectAttributes) throws IOException {
+    public String createProduct(Product product, @RequestParam("files") List<MultipartFile> files, Principal principal, RedirectAttributes redirectAttributes, int quantity) throws IOException {
 
         // Проверка что файлов не более 10 шт.
         if (files.size() > 10) {
@@ -50,19 +55,30 @@ public class ProductController {
             return "redirect:/user/" + user.getId();
         }
 
-        productService.saveProduct(principal, product, files);
+        productService.saveProduct(principal, product, files, quantity);
 
         // выкинуть на главную
         return "redirect:/";
     }
 
 
-    //кнопка удалить
+    //кнопка удалить (только владелец или админ)
     @PostMapping("/product/delete/{id}")
-    public String deleteProduct(@PathVariable Long id) {
-        productService.deleteProducts(id);
+    public String deleteProduct(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
+        if (!productService.deleteProducts(id, principal)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Не удалось удалить товар");
+        }
         //выкинуть на главную
         return "redirect:/";
+    }
+
+    //пополнить остаток товара (только владелец или админ)
+    @PostMapping("/product/restock/{id}")
+    public String restockProduct(@PathVariable Long id, @RequestParam int amount, Principal principal, RedirectAttributes redirectAttributes) {
+        if (!productService.restockProduct(id, amount, principal)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Не удалось изменить количество");
+        }
+        return "redirect:/product/" + id;
     }
 
 }

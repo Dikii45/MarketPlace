@@ -1,4 +1,4 @@
-<#import "common.ftlh" as c>
+ <#import "common.ftlh" as c>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -45,16 +45,26 @@
             <dd>${product.city}</dd>
             <dt>Автор</dt>
             <dd><a href="/user/${product.user.id}">${product.user.name}</a></dd>
+            <dt>В наличии</dt>
+            <dd>${product.quantity} шт.</dd>
         </dl>
 
-        <#if currentUser?? && currentUser.id?? && currentUser.id != product.user.id>
-        <form action="/product/order/${product.id}" method="post">
+        <#if product.quantity <= 0>
+            <div class="alert" style="margin:0;">Товар закончился</div>
+        <#elseif currentUser?? && currentUser.id?? && currentUser.id != product.user.id>
+        <form action="/cart/add/${product.id}" method="post">
             <input type="hidden" name="_csrf" value="${_csrf.token}">
-            <button class="btn accent" type="submit">Заказать</button>
+            <button class="btn accent" type="submit">В корзину</button>
         </form>
         </#if>
 
         <#if currentUser?? && currentUser.id?? && (currentUser.isAdmin() || currentUser.id == product.user.id)>
+        <form class="restock-form" action="/product/restock/${product.id}" method="post">
+            <input type="hidden" name="_csrf" value="${_csrf.token}">
+            <input type="number" name="amount" min="1" value="1" required>
+            <button class="btn-sm accent" type="submit">Пополнить остаток</button>
+        </form>
+
         <form action="/product/delete/${product.id}" method="post" data-confirm="Удалить товар «${product.title}»?">
             <input type="hidden" name="_csrf" value="${_csrf.token}">
             <button class="btn danger" type="submit">Удалить товар</button>

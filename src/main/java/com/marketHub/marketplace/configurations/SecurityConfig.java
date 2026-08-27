@@ -24,15 +24,15 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                org.springframework.http.HttpMethod.GET,
                                 "/",
                                 "/product/**",
                                 "/images/**",
                                 "/css/**",
                                 "/js/**",
-                                "/registration",
-                                "/login",
                                 "/error"
                         ).permitAll()
+                        .requestMatchers("/registration", "/login").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

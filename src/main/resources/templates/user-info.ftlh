@@ -40,6 +40,10 @@
                 <input type="number" id="price" name="price" min="0" required>
             </div>
             <div class="form-field">
+                <label for="quantity">Количество</label>
+                <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+            </div>
+            <div class="form-field">
                 <label for="city">Город</label>
                 <input type="text" id="city" name="city" required>
             </div>

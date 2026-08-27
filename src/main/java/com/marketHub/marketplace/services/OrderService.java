@@ -1,12 +1,12 @@
 package com.marketHub.marketplace.services;
 
 import com.marketHub.marketplace.models.Order;
-import com.marketHub.marketplace.models.Product;
+import com.marketHub.marketplace.models.OrderItem;
 import com.marketHub.marketplace.models.User;
 import com.marketHub.marketplace.models.enums.OrderStatus;
+import com.marketHub.marketplace.repositories.OrderItemRepository;
 import com.marketHub.marketplace.repositories.OrderRepository;
 import lombok.RequiredArgsConstructor;
-
 
 import org.springframework.stereotype.Service;
 import java.security.Principal;
@@ -16,38 +16,53 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final UserService userService;
-
-
-    public void saveOrder(User buyer, Product product) {
-        Order order = new Order();
-        order.setBuyer(buyer);
-        order.setProduct(product);
-
-        orderRepository.save(order);
-    }
 
     public List<Order> getMyPurchases(Principal principal) {
         User buyer = userService.getUserByPrincipal(principal);
         return orderRepository.findByBuyerId(buyer.getId());
     }
 
-    public List<Order> getMySales(Principal principal) {
+    public List<OrderItem> getMySales(Principal principal) {
         User seller = userService.getUserByPrincipal(principal);
-        return orderRepository.findByProduct_User_Id(seller.getId());
+        return orderItemRepository.findByProduct_User_Id(seller.getId());
     }
 
-    public void updateStatus(Long orderId, OrderStatus status, Principal principal) {
-        Order order = orderRepository.findById(orderId).orElse(null);
-        if (order == null) return;
+    public void updateStatus(Long orderItemId, OrderStatus status, Principal principal) {
+        OrderItem orderItem = orderItemRepository.findById(orderItemId).orElse(null);
+        if (orderItem == null) return;
 
         User currentUser = userService.getUserByPrincipal(principal);
-        if (!order.getProduct().getUser().getId().equals(currentUser.getId())) {
+
+        // проверка: владелец товара в этой строке заказа = principal
+        if (!orderItem.getProduct().getUser().getId().equals(currentUser.getId())) {
             return;
         }
 
-        order.setStatus(status);
-        orderRepository.save(order);
-    }
+        // запрет на изменение на предыдущий/тот же статус
+        boolean canMoveTo;
+        switch (orderItem.getStatus()) {
+            case NEW:
+                canMoveTo = status != OrderStatus.NEW;
+                break;
+            case CONFIRMED:
+                canMoveTo = status != OrderStatus.CONFIRMED && status != OrderStatus.NEW;
+                break;
+            case SENT:
+                canMoveTo = status == OrderStatus.RECEIVED || status == OrderStatus.CANCELLED;
+                break;
+            case RECEIVED:
+                canMoveTo = status == OrderStatus.CANCELLED;
+                break;
+            default:
+                // CANCELLED — терминальный статус, дальше меняться не может
+                canMoveTo = false;
+        }
 
+        if (!canMoveTo) return;
+
+        orderItem.setStatus(status);
+        orderItemRepository.save(orderItem);
+    }
 }

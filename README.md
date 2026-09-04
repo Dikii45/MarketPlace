@@ -31,7 +31,19 @@
 - Админ-панель: управление пользователями и ролями
 - Общение продовец-закзчик происходит через чат, который встроен в сайт
 
-## Запуск локально
+## Запуск через Docker (проще всего)
+
+Нужен только установленный [Docker Desktop](https://www.docker.com/products/docker-desktop/) — Java, Maven и MySQL ставить не надо, всё поднимается в контейнерах.
+
+```bash
+git clone https://github.com/Dikii45/MarketPlace.git
+cd MarketPlace
+docker compose up --build
+```
+
+Первый запуск соберёт образ и поднимет MySQL — займёт пару минут. Дальше сайт на [http://localhost:8081](http://localhost:8081). Данные MySQL сохраняются между перезапусками в volume `db-data`; `docker compose down -v` — полностью снести и начать с чистой базы.
+
+## Запуск локально (без Docker)
 
 1. Поднять MySQL и создать базу:
    ```sql

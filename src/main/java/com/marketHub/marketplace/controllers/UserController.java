@@ -17,12 +17,21 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Set;
 
 @Controller
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+
+    // регистрация только с популярных почтовых сервисов
+    private static final Set<String> ALLOWED_EMAIL_DOMAINS = Set.of(
+            "gmail.com", "yandex.ru", "ya.ru", "mail.ru", "list.ru", "bk.ru", "inbox.ru",
+            "rambler.ru", "outlook.com", "hotmail.com", "live.com", "yahoo.com", "icloud.com", "protonmail.com"
+    );
+
+
 
     @GetMapping("/login")
     public String login(@RequestParam(name = "error", required = false) String error, Model model) {
@@ -40,6 +49,24 @@ public class UserController {
     //confirmPasswor(проверка на повторный пароль) на фротенде можно обойти на повтор пароль
     @PostMapping("/registration")
     public String createUser(User user, Model model, @RequestParam String confirmPassword) {
+
+
+
+        if(user.getEmail() == null || user.getEmail().isEmpty()){
+            model.addAttribute("errorMessage", "Нужно ввести почту");
+        }
+
+        String email = user.getEmail().trim();
+
+        //ищу на какой позиции стоит @
+        int at = email.indexOf('@');
+        //убираю все что было до @ оставляю только идекс почты
+        String domain = at >= 0 ? email.substring(at + 1).toLowerCase() : "";
+
+        if (!ALLOWED_EMAIL_DOMAINS.contains(domain)) {
+            model.addAttribute("errorMessage", "Регистрация доступна только с популярных почтовых сервисов: " + String.join(", ", ALLOWED_EMAIL_DOMAINS));
+            return "registration";
+        }
 
         if(!confirmPassword.equals(user.getPassword())){
             model.addAttribute("errorMessage", "Пароль не совпадает");

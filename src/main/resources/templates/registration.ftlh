@@ -25,6 +25,7 @@
             <div class="form-field">
                 <label for="email">Эл. почта</label>
                 <input type="email" id="email" name="email">
+                <span class="form-field__hint">Gmail, Яндекс, Mail.ru, Outlook, iCloud и другие популярные сервисы</span>
             </div>
             <div class="form-field">
                 <label for="phoneNumber">Номер телефона</label>

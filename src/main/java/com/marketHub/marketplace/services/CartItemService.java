@@ -76,6 +76,7 @@ public class CartItemService {
         cartItemRepository.save(cartItem);
     }
 
+    //Обновляю количество товара в корзине
     public void updateQuantity(User user, Product product, int quantity) {
         CartItem cartItem = cartItemRepository.findByUserAndProduct(user, product).orElse(null);
         if (cartItem == null) return;

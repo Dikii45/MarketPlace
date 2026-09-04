@@ -35,50 +35,67 @@ class ProductControllerSecurityTest {
     @Autowired
     private ProductRepository productRepository;
 
+
+    //Создаем User
     private User persistUser(String email, boolean admin) {
+
         User u = new User();
         u.setEmail(email);
         u.setName(email);
         u.setPassword("x");
         u.setActive(true);
         if (admin) u.getRoles().add(Role.ROLE_ADMIN);
+
         return userRepository.save(u);
     }
 
+    //Создаем продукт
     private Product persistProduct(User owner) {
+
         Product p = new Product();
         p.setUser(owner);
         p.setTitle("Товар");
         p.setPrice(100);
         p.setCity("Москва");
         p.setQuantity(5);
+
         return productRepository.save(p);
     }
 
+    //Удаление если не авторезирован
     @Test
     void anonymousDelete_isRejectedAndProductSurvives() throws Exception {
+
         User owner = persistUser("owner@a.com", false);
         Product product = persistProduct(owner);
 
+        //имитируем запрос на удаление
         mockMvc.perform(post("/product/delete/" + product.getId()).with(csrf()))
                 .andExpect(status().is3xxRedirection());
 
+        //проверяем базу
         assertThat(productRepository.findById(product.getId()).orElseThrow().isDeleted()).isFalse();
     }
 
+    //пытаемся удалить товар, но я не владелец товара
     @Test
-    @WithMockUser(username = "stranger@a.com")
+    //авторизация фейка
+    @WithMockUser(username = "stranger @a.com")
     void loggedInButNotOwner_deleteIsRejected() throws Exception {
+
         User owner = persistUser("owner2@a.com", false);
         persistUser("stranger@a.com", false);
         Product product = persistProduct(owner);
 
+        //пробуем удалить
         mockMvc.perform(post("/product/delete/" + product.getId()).with(csrf()))
                 .andExpect(status().is3xxRedirection());
 
+        //проверка в БД
         assertThat(productRepository.findById(product.getId()).orElseThrow().isDeleted()).isFalse();
     }
 
+    //пытаемся удалить товар если владелец товара авторезирован
     @Test
     @WithMockUser(username = "owner3@a.com")
     void owner_canSoftDeleteOwnProduct() throws Exception {
@@ -91,6 +108,7 @@ class ProductControllerSecurityTest {
         assertThat(productRepository.findById(product.getId()).orElseThrow().isDeleted()).isTrue();
     }
 
+    //Пытаемся удалить товар админом
     @Test
     @WithMockUser(username = "admin@a.com")
     void admin_canDeleteAnyonesProduct() throws Exception {

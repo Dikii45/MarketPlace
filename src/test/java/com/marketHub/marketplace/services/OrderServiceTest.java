@@ -46,6 +46,7 @@ class OrderServiceTest {
         orderService = new OrderService(orderRepository, orderItemRepository, userService);
     }
 
+    // создание юзера
     private User user(long id) {
         User u = new User();
         u.setId(id);
@@ -56,6 +57,7 @@ class OrderServiceTest {
         return () -> email;
     }
 
+    // updateStatus нормально реагирует на изменения статуса(главная идея нельзя присваивать предыдущий статус)
     @ParameterizedTest(name = "{0} -> {1} разрешён: {2}")
     @CsvSource({
             "NEW,       CONFIRMED, true",
@@ -94,6 +96,7 @@ class OrderServiceTest {
         }
     }
 
+    //как реагирует updateStatus если не владелец пытается поменять статус
     @Test
     void updateStatus_notTheSellerOfThisItem_statusUnchanged() {
         User seller = user(1);
@@ -114,6 +117,7 @@ class OrderServiceTest {
         verify(orderItemRepository, never()).save(any());
     }
 
+    //как реагирует updateStatus если не находит user
     @Test
     void updateStatus_orderItemNotFound_doesNothingSilently() {
         when(orderItemRepository.findById(999L)).thenReturn(Optional.empty());

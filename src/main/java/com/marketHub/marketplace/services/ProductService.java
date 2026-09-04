@@ -27,6 +27,7 @@ public class ProductService {
     }
 
 
+    //пополняем запасы продукта
     public boolean restockProduct(Long productId, int amount, Principal principal) {
         if (amount <= 0) return false;
 

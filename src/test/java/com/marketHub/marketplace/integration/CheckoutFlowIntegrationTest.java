@@ -48,57 +48,67 @@ class CheckoutFlowIntegrationTest {
     @Autowired
     private CartItemService cartItemService;
 
+    //создаем юзера
     private User persistUser(String email) {
+
         User u = new User();
         u.setEmail(email);
         u.setName(email);
         u.setPassword("x");
         u.setActive(true);
+
         return userRepository.save(u);
     }
 
+    //создаем товар
     private Product persistProduct(User seller, String title, int price, int quantity) {
+
         Product p = new Product();
         p.setUser(seller);
         p.setTitle(title);
         p.setPrice(price);
         p.setCity("Москва");
         p.setQuantity(quantity);
+
         return productRepository.save(p);
     }
+
 
     private Principal principalOf(User user) {
         return user::getEmail;
     }
 
+    //проверка работоспособности корзины
     @Test
     void fullCheckoutPipeline_reducesStockAndCreatesOrderWithOrderItem() {
-        // 1. продавец выставил товар с остатком 5
+
+        // продавец выставил товар с остатком 5
         User seller = persistUser("seller@a.com");
         User buyer = persistUser("buyer@a.com");
         Product product = persistProduct(seller, "Тестовый товар", 1500, 5);
 
-        // 2. покупатель кладёт 2 штуки в корзину
+        // покупатель кладёт 2 штуки в корзину
         cartItemService.addProductToCart(buyer, product);
         cartItemService.updateQuantity(buyer, product, 2);
         assertThat(cartItemService.getCartItems(buyer)).hasSize(1);
 
-        // 3. оформляет заказ
+        // оформляет заказ
         boolean success = cartItemService.checkout(buyer, "г. Москва, ул. Тестовая, 1", PaymentMethod.CARD);
         assertThat(success).isTrue();
 
-        // 4. остаток уменьшился ровно на купленное количество
+        // остаток уменьшился ровно на купленное количество
         Product reloaded = productRepository.findById(product.getId()).orElseThrow();
         assertThat(reloaded.getQuantity()).isEqualTo(3);
 
-        // 5. создался Order на покупателя
+        // создался Order на покупателя
         List<Order> orders = orderRepository.findByBuyerId(buyer.getId());
         assertThat(orders).hasSize(1);
         Order order = orders.get(0);
         assertThat(order.getDeliveryAddress()).isEqualTo("г. Москва, ул. Тестовая, 1");
         assertThat(order.getPaymentMethod()).isEqualTo(PaymentMethod.CARD);
 
-        // 6. и ровно один OrderItem с правильным количеством и стартовым статусом NEW
+
+        // ровно один OrderItem с правильным количеством и стартовым статусом NEW
         List<OrderItem> sellerSales = orderItemRepository.findByProduct_User_Id(seller.getId());
         assertThat(sellerSales).hasSize(1);
         OrderItem orderItem = sellerSales.get(0);
@@ -106,10 +116,11 @@ class CheckoutFlowIntegrationTest {
         assertThat(orderItem.getQuantity()).isEqualTo(2);
         assertThat(orderItem.getStatus()).isEqualTo(OrderStatus.NEW);
 
-        // 7. корзина покупателя опустела
+        // корзина покупателя опустела
         assertThat(cartItemService.getCartItems(buyer)).isEmpty();
     }
 
+    //
     @Test
     void checkout_exactlyAvailableStock_isAllowed() {
         User seller = persistUser("seller2@a.com");
@@ -124,6 +135,7 @@ class CheckoutFlowIntegrationTest {
         assertThat(productRepository.findById(product.getId()).orElseThrow().getQuantity()).isZero();
     }
 
+    //проверка если 2 заказ одновременно
     @Test
     void checkout_cartQuantityAboveStock_blockedWithNoOrderCreated() {
         User seller = persistUser("seller3@a.com");
@@ -149,6 +161,7 @@ class CheckoutFlowIntegrationTest {
         assertThat(otherReloaded.getQuantity()).isEqualTo(10);
     }
 
+    //проверка удаление товара, а у кого то в корзине
     @Test
     void checkout_productSoftDeletedWhileInCart_isSelfHealedAndBlocked() {
         User seller = persistUser("seller4@a.com");
@@ -171,6 +184,7 @@ class CheckoutFlowIntegrationTest {
         assertThat(orderRepository.findByBuyerId(buyer.getId())).isEmpty();
     }
 
+    //Проверка что 1 ордер = 1 заказ
     @Test
     void checkout_multiSellerCart_createsOneOrderWithOneOrderItemPerSeller() {
         User seller1 = persistUser("selA@a.com");
@@ -179,18 +193,20 @@ class CheckoutFlowIntegrationTest {
         Product productA = persistProduct(seller1, "Товар A", 100, 5);
         Product productB = persistProduct(seller2, "Товар B", 200, 5);
 
+        //корзина
         cartItemService.addProductToCart(buyer, productA);
         cartItemService.addProductToCart(buyer, productB);
 
         boolean success = cartItemService.checkout(buyer, "Адрес", PaymentMethod.CASH);
 
+
         assertThat(success).isTrue();
         List<Order> orders = orderRepository.findByBuyerId(buyer.getId());
-        assertThat(orders).hasSize(1); // один Order на всю корзину...
+        assertThat(orders).hasSize(1); // один Order на всю корзину
 
         List<OrderItem> salesA = orderItemRepository.findByProduct_User_Id(seller1.getId());
         List<OrderItem> salesB = orderItemRepository.findByProduct_User_Id(seller2.getId());
-        assertThat(salesA).hasSize(1); // ...но каждый продавец видит только свою строку
+        assertThat(salesA).hasSize(1); // каждый продавец видит только свою строку
         assertThat(salesB).hasSize(1);
         assertThat(salesA.get(0).getOrder().getId()).isEqualTo(orders.get(0).getId());
         assertThat(salesB.get(0).getOrder().getId()).isEqualTo(orders.get(0).getId());

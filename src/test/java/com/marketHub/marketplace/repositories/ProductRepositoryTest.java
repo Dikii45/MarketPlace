@@ -23,38 +23,49 @@ class ProductRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
+    //создание юзера
     private User seller() {
+
         User u = new User();
         u.setEmail("seller@a.com");
         u.setName("Seller");
         u.setPassword("x");
         u.setActive(true);
+
         return userRepository.save(u);
     }
 
+    //создание товара
     private Product product(User owner, String title, int quantity, boolean deleted) {
         Product p = new Product();
+
         p.setUser(owner);
         p.setTitle(title);
         p.setPrice(100);
         p.setCity("Москва");
         p.setQuantity(quantity);
         p.setDeleted(deleted);
+
         return productRepository.save(p);
     }
 
+
+    //Тест удаленность товара
     @Test
     void findByQuantityGreaterThanAndDeletedFalse_excludesOutOfStockAndDeleted() {
+
         User seller = seller();
         Product inStock = product(seller, "In stock", 5, false);
         product(seller, "Out of stock", 0, false);
         product(seller, "Deleted but in stock", 5, true);
 
+        //БД quantity > 0, а deleted == false
         List<Product> result = productRepository.findByQuantityGreaterThanAndDeletedFalse(0);
 
         assertThat(result).containsExactly(inStock);
     }
 
+    //проверка поиска
     @Test
     void findByTitleContainingIgnoreCaseAndQuantityGreaterThanAndDeletedFalse_isCaseInsensitive() {
         User seller = seller();
@@ -67,6 +78,7 @@ class ProductRepositoryTest {
         assertThat(result).containsExactly(phone);
     }
 
+    //проверка поиска если товар удален
     @Test
     void findByTitleContainingIgnoreCaseAndQuantityGreaterThanAndDeletedFalse_stillExcludesDeleted() {
         User seller = seller();

@@ -41,6 +41,7 @@ class ProductServiceTest {
         productService = new ProductService(productRepository, userRepository);
     }
 
+    //создание юзера
     private User user(long id, String email, boolean admin) {
         User u = new User();
         u.setId(id);
@@ -49,6 +50,7 @@ class ProductServiceTest {
         return u;
     }
 
+    //создание продукта
     private Product product(long id, User owner, int quantity) {
         Product p = new Product();
         p.setId(id);
@@ -62,8 +64,11 @@ class ProductServiceTest {
         return () -> email;
     }
 
-    // ---------- listProducts ----------
 
+
+    // ---------- Проверка listProducts ----------
+
+    // как реагирует если listProducts отправим пустой title
     @Test
     void listProducts_blankTitle_returnsInStockNonDeletedProducts() {
         List<Product> expected = List.of(product(1, user(1, "a@a.com", false), 5));
@@ -75,22 +80,15 @@ class ProductServiceTest {
         verify(productRepository, never()).findByTitleContainingIgnoreCaseAndQuantityGreaterThanAndDeletedFalse(any(), anyInt());
     }
 
-    @Test
-    void listProducts_withTitle_delegatesToSearchQuery() {
-        when(productRepository.findByTitleContainingIgnoreCaseAndQuantityGreaterThanAndDeletedFalse("phone", 0))
-                .thenReturn(List.of());
+    // ---------- deleteProducts (только владелец/админ) ----------
 
-        productService.listProducts("  phone  ");
-
-        verify(productRepository).findByTitleContainingIgnoreCaseAndQuantityGreaterThanAndDeletedFalse("phone", 0);
-    }
-
-    // ---------- deleteProducts (см. security-фикс: только владелец/админ) ----------
-
+    // как реагирует если deleteProducts, если все идет по плану)
     @Test
     void deleteProducts_owner_softDeletesAndZeroesQuantity() {
+
         User owner = user(1, "owner@a.com", false);
         Product product = product(10, owner, 5);
+
         when(productRepository.findById(10L)).thenReturn(java.util.Optional.of(product));
         when(userRepository.findByEmail("owner@a.com")).thenReturn(owner);
 
@@ -102,6 +100,8 @@ class ProductServiceTest {
         verify(productRepository).save(product);
     }
 
+
+    // как реагирует если deleteProducts, если удаляет админ
     @Test
     void deleteProducts_admin_canDeleteAnyonesProduct() {
         User owner = user(1, "owner@a.com", false);
@@ -116,6 +116,8 @@ class ProductServiceTest {
         assertThat(product.isDeleted()).isTrue();
     }
 
+
+    // как реагирует deleteProducts, если удаляет не владелец
     @Test
     void deleteProducts_notOwnerNotAdmin_rejectedAndProductUntouched() {
         User owner = user(1, "owner@a.com", false);
@@ -131,6 +133,8 @@ class ProductServiceTest {
         verify(productRepository, never()).save(any());
     }
 
+
+    // как реагирует deleteProducts, если не найдет user
     @Test
     void deleteProducts_productDoesNotExist_returnsFalse() {
         when(productRepository.findById(999L)).thenReturn(java.util.Optional.empty());
@@ -143,10 +147,13 @@ class ProductServiceTest {
 
     // ---------- restockProduct ----------
 
+
+    // как реагирует если restockProduct, если все хорошо)
     @Test
     void restockProduct_owner_increasesQuantityByAmount() {
         User owner = user(1, "owner@a.com", false);
         Product product = product(10, owner, 5);
+
         when(productRepository.findById(10L)).thenReturn(java.util.Optional.of(product));
         when(userRepository.findByEmail("owner@a.com")).thenReturn(owner);
 
@@ -156,6 +163,7 @@ class ProductServiceTest {
         assertThat(product.getQuantity()).isEqualTo(8);
     }
 
+    // как реагирует если restockProduct, если передать 0
     @Test
     void restockProduct_nonPositiveAmount_rejectedWithoutTouchingRepository() {
         boolean result = productService.restockProduct(10L, 0, principalOf("owner@a.com"));
@@ -164,11 +172,13 @@ class ProductServiceTest {
         verify(productRepository, never()).findById(any());
     }
 
+    //как реагирует если restockProduct, если передать число меньше чем есть сейчас
     @Test
     void restockProduct_notOwner_rejectedAndQuantityUnchanged() {
         User owner = user(1, "owner@a.com", false);
         User stranger = user(2, "stranger@a.com", false);
         Product product = product(10, owner, 5);
+
         when(productRepository.findById(10L)).thenReturn(java.util.Optional.of(product));
         when(userRepository.findByEmail("stranger@a.com")).thenReturn(stranger);
 

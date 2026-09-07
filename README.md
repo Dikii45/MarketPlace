@@ -1,5 +1,7 @@
 # BUYSELL
 
+[![CI/CD](https://github.com/Dikii45/MarketPlace/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Dikii45/MarketPlace/actions/workflows/ci-cd.yml)
+
 Веб-маркетплейс на Spring Boot: пользователи публикуют объявления о товарах, покупатели собирают корзину и оформляют заказ, продавцы ведут заказы по статусам.
 
 ## Архитектура
@@ -61,6 +63,14 @@ docker compose up --build
    ./mvnw spring-boot:run
    ```
 4. Открыть [http://localhost:8081](http://localhost:8081).
+
+## CI/CD
+
+На каждый push и pull request в `main` GitHub Actions (`.github/workflows/ci-cd.yml`) собирает проект и гоняет весь тестовый набор (юнит + repository + integration + controller, все на H2 — реальный MySQL в CI не нужен). При успешных тестах на push в `main` дополнительно собирается и публикуется Docker-образ в GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/dikii45/marketplace:latest
+```
 
 ## Структура проекта
 

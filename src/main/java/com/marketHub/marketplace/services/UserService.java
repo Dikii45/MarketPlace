@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +29,46 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    // российский номер: 11 цифр, начинается с 7 или 8 (+7XXXXXXXXXX / 8XXXXXXXXXX),
+    // пробелы/скобки/дефисы допускаются — сверяем только по цифрам
+    private static final Pattern RUSSIAN_PHONE = Pattern.compile("^[78]\\d{10}$");
+
+    // регистрация только с популярных почтовых сервисов — отсекаем разовые/мусорные адреса
+    private static final Set<String> ALLOWED_EMAIL_DOMAINS = Set.of(
+            "gmail.com", "yandex.ru", "ya.ru", "mail.ru", "list.ru", "bk.ru", "inbox.ru",
+            "rambler.ru", "outlook.com", "hotmail.com", "live.com", "yahoo.com", "icloud.com", "protonmail.com"
+    );
+
+
+    // номер необязателен; если введён — должен быть российским
+    public boolean isValidRussianPhone(String phone) {
+
+        if (phone == null || phone.isBlank()) return true;
+        String digits = phone.replaceAll("[^0-9]", "");
+
+        return RUSSIAN_PHONE.matcher(digits).matches();
+    }
+
+    //проверка что введен Российский номер
+    public boolean isAllowedEmailDomain(String email) {
+
+        if (email == null) return false;
+
+        String trimmed = email.trim();
+
+        //Поиск '@' на какой он месте стоит
+        int at = trimmed.indexOf('@');
+        //убираем все что было до '@'
+        String domain = at >= 0 ? trimmed.substring(at + 1).toLowerCase() : "";
+
+        return ALLOWED_EMAIL_DOMAINS.contains(domain);
+    }
+
+    public String allowedEmailDomainsList() {
+        return String.join(", ", ALLOWED_EMAIL_DOMAINS);
+    }
+
 
     public boolean createUser(User user) {
         // проверка уникальности

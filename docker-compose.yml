@@ -23,6 +23,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/buysell
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      APP_JWT_SECRET: docker-only-secret-change-me-32-bytes-minimum-1234567890
     ports:
       - "8081:8081"
 

@@ -30,6 +30,7 @@
             <div class="form-field">
                 <label for="phoneNumber">Номер телефона</label>
                 <input type="text" id="phoneNumber" name="phoneNumber">
+                <span class="form-field__hint">Необязательно, но если указываете — только российский: +7XXXXXXXXXX или 8XXXXXXXXXX</span>
             </div>
             <div class="form-field">
                 <label for="password">Пароль</label>

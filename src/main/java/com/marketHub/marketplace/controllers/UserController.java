@@ -17,21 +17,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Set;
 
 @Controller
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-
-    // регистрация только с популярных почтовых сервисов
-    private static final Set<String> ALLOWED_EMAIL_DOMAINS = Set.of(
-            "gmail.com", "yandex.ru", "ya.ru", "mail.ru", "list.ru", "bk.ru", "inbox.ru",
-            "rambler.ru", "outlook.com", "hotmail.com", "live.com", "yahoo.com", "icloud.com", "protonmail.com"
-    );
-
-
 
     @GetMapping("/login")
     public String login(@RequestParam(name = "error", required = false) String error, Model model) {
@@ -51,32 +42,36 @@ public class UserController {
     public String createUser(User user, Model model, @RequestParam String confirmPassword) {
 
 
-
+        // проверка что почта была введена
         if(user.getEmail() == null || user.getEmail().isEmpty()){
             model.addAttribute("errorMessage", "Нужно ввести почту");
-        }
-
-        String email = user.getEmail().trim();
-
-        //ищу на какой позиции стоит @
-        int at = email.indexOf('@');
-        //убираю все что было до @ оставляю только идекс почты
-        String domain = at >= 0 ? email.substring(at + 1).toLowerCase() : "";
-
-        if (!ALLOWED_EMAIL_DOMAINS.contains(domain)) {
-            model.addAttribute("errorMessage", "Регистрация доступна только с популярных почтовых сервисов: " + String.join(", ", ALLOWED_EMAIL_DOMAINS));
             return "registration";
         }
 
+        //проверка что регистрация с популярного почтово сервиса
+        if (!userService.isAllowedEmailDomain(user.getEmail())) {
+            model.addAttribute("errorMessage", "Регистрация доступна только с популярных почтовых сервисов: " + userService.allowedEmailDomainsList());
+            return "registration";
+        }
+
+        //проверка что был введен Российский номер
+        if (!userService.isValidRussianPhone(user.getPhoneNumber())) {
+            model.addAttribute("errorMessage", "Введите российский номер телефона: +7XXXXXXXXXX или 8XXXXXXXXXX");
+            return "registration";
+        }
+
+        // проверка что пароли совпадают на стронице (введите повторно пароль)
         if(!confirmPassword.equals(user.getPassword())){
             model.addAttribute("errorMessage", "Пароль не совпадает");
             return "registration";
         }
 
+        //Создания юзера и там же проверка на уникальность email (делал все в одном т.к. обращение к БД)
         if(!userService.createUser(user)){
             model.addAttribute("errorMessage", "Пользователь с email: " + user.getEmail() + "уже существует");
             return "registration";
         }
+
         return "redirect:/login";
     }
 
@@ -105,6 +100,12 @@ public class UserController {
     public String changeNamePhoneNumber(@RequestParam String name, @RequestParam(required = false) String phoneNumber, Principal principal,
                                         RedirectAttributes redirectAttributes) {
         User user = userService.getUserByPrincipal(principal);
+
+        if (!userService.isValidRussianPhone(phoneNumber)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Введите российский номер телефона: +7XXXXXXXXXX или 8XXXXXXXXXX");
+            return "redirect:/account";
+        }
+
         if (!userService.updateProfile(user, name, phoneNumber)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Имя не может быть пустым");
         }

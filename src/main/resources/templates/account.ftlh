@@ -34,6 +34,7 @@
             <div class="form-field">
                 <label for="phoneNumber">Номер телефона</label>
                 <input type="text" id="phoneNumber" name="phoneNumber" value="${currentUser.phoneNumber!""}">
+                <span class="form-field__hint">Только российский: +7XXXXXXXXXX или 8XXXXXXXXXX</span>
             </div>
             <div class="form-field">
                 <label for="email">Email</label>

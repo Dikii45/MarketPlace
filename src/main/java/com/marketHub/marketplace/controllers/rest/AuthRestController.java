@@ -15,6 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+/*
+* Разработка закончена 08.09.2026
+* Возможно будет возобновлена после разработки андроид приложения
+*
+* */
+
 // вход в REST API — отдельно от формы /login сайта, отдаёт JWT вместо cookie-сессии
 @RestController
 @RequestMapping("/api/auth")

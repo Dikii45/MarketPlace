@@ -19,7 +19,7 @@
     <div class="gallery">
         <div class="gallery__main">
             <#if product.images?has_content>
-                <img id="galleryMain" src="/images/${product.images[0].id}" alt="${product.title}">
+                <img id="galleryMain" src="/images/${product.images[0].id?c}" alt="${product.title}">
             <#else>
                 <svg class="icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" style="width:64px;height:64px;">
                     <rect x="7" y="10" width="34" height="28" rx="3"/><circle cx="17" cy="20" r="3"/><path d="M11 33l10-9 8 7 6-6 8 7"/>
@@ -29,7 +29,7 @@
         <#if (product.images?size > 1)>
         <div class="gallery__strip">
             <#list product.images as image>
-                <img src="/images/${image.id}" alt="${product.title}" data-gallery-thumb class="<#if image?index==0>is-active</#if>">
+                <img src="/images/${image.id?c}" alt="${product.title}" data-gallery-thumb class="<#if image?index==0>is-active</#if>">
             </#list>
         </div>
         </#if>

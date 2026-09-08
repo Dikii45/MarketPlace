@@ -89,9 +89,9 @@
                         <span class="cell-with-icon">
                             <span class="row-icon">
                                 <#if item.product.previewImageId??>
-                                    <img src="/images/${item.product.previewImageId}" alt="">
+                                    <img src="/images/${item.product.previewImageId?c}" alt="">
                                 <#elseif item.product.images?has_content>
-                                    <img src="/images/${item.product.images[0].id}" alt="">
+                                    <img src="/images/${item.product.images[0].id?c}" alt="">
                                 <#else>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 7l9-4 9 4"/><path d="M8 11v4M16 11v4"/></svg>
                                 </#if>
@@ -128,9 +128,9 @@
         <span class="cell-with-icon">
             <span class="row-icon">
                 <#if item.product.previewImageId??>
-                    <img src="/images/${item.product.previewImageId}" alt="">
+                    <img src="/images/${item.product.previewImageId?c}" alt="">
                 <#elseif item.product.images?has_content>
-                    <img src="/images/${item.product.images[0].id}" alt="">
+                    <img src="/images/${item.product.images[0].id?c}" alt="">
                 <#else>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 7l9-4 9 4"/><path d="M8 11v4M16 11v4"/></svg>
                 </#if>

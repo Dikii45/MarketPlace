@@ -55,7 +55,7 @@
         <form action="/account/avatar" method="post" enctype="multipart/form-data">
             <div class="avatar-upload">
                 <#if currentUser.avatar??>
-                    <span class="account-avatar account-avatar--lg" id="avatarPreview"><img src="/images/${currentUser.avatar.id}" alt=""></span>
+                    <span class="account-avatar account-avatar--lg" id="avatarPreview"><img src="/images/${currentUser.avatar.id?c}" alt=""></span>
                 <#else>
                     <#assign initial = (currentUser.name?has_content)?then(currentUser.name?substring(0,1)?upper_case, "?")>
                     <span class="account-avatar account-avatar--lg" id="avatarPreview">${initial}</span>

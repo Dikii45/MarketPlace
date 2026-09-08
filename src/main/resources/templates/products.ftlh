@@ -8,14 +8,18 @@
 
 <script>
     (function () {
-        var q = new URLSearchParams(location.search).get("title");
-        if (q && q.trim() !== "") {
+        var params = new URLSearchParams(location.search);
+        var q = params.get("title");
+        var hasFilters = ["category", "minPrice", "maxPrice", "sort"].some(function (key) {
+            return params.get(key) && params.get(key).trim() !== "";
+        });
+        if ((q && q.trim() !== "") || hasFilters) {
             document.documentElement.classList.add("search-active");
-            document.addEventListener("DOMContentLoaded", function () {
-                var input = document.querySelector('.search input[name="title"]');
-                if (input) input.value = q;
-            });
         }
+        document.addEventListener("DOMContentLoaded", function () {
+            var input = document.querySelector('.search input[name="title"]');
+            if (input && q) input.value = q;
+        });
     })();
 </script>
 
@@ -70,6 +74,36 @@
         <h2>Свежие объявления</h2>
         <span class="count mono">${products?size} объявлений</span>
     </div>
+
+    <form class="catalog-filters" action="/" method="get">
+        <input type="hidden" name="title" value="${(searchTitle)!""}">
+        <div class="filter-field">
+            <label class="sr-only" for="filter-category">Категория</label>
+            <select id="filter-category" name="category">
+                <option value="">Все категории</option>
+                <#list categories as category>
+                    <option value="${category}"<#if selectedCategory?? && selectedCategory == category> selected</#if>>${c.categoryLabel(category)}</option>
+                </#list>
+            </select>
+        </div>
+        <div class="filter-field filter-field--price">
+            <label class="sr-only" for="filter-min-price">Цена от</label>
+            <input type="number" id="filter-min-price" name="minPrice" min="0" placeholder="Цена от" value="<#if minPrice??>${minPrice?c}</#if>">
+        </div>
+        <div class="filter-field filter-field--price">
+            <label class="sr-only" for="filter-max-price">Цена до</label>
+            <input type="number" id="filter-max-price" name="maxPrice" min="0" placeholder="Цена до" value="<#if maxPrice??>${maxPrice?c}</#if>">
+        </div>
+        <div class="filter-field">
+            <label class="sr-only" for="filter-sort">Сортировка</label>
+            <select id="filter-sort" name="sort">
+                <option value="">По умолчанию</option>
+                <option value="price_asc"<#if selectedSort?? && selectedSort == "price_asc"> selected</#if>>Сначала дешевле</option>
+                <option value="price_desc"<#if selectedSort?? && selectedSort == "price_desc"> selected</#if>>Сначала дороже</option>
+            </select>
+        </div>
+        <button class="catalog-filters__submit" type="submit">Применить</button>
+    </form>
 
     <#if products?has_content>
     <div class="grid">

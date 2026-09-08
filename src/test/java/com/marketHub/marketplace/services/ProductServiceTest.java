@@ -2,6 +2,7 @@ package com.marketHub.marketplace.services;
 
 import com.marketHub.marketplace.models.Product;
 import com.marketHub.marketplace.models.User;
+import com.marketHub.marketplace.models.enums.Category;
 import com.marketHub.marketplace.models.enums.Role;
 import com.marketHub.marketplace.repositories.ProductRepository;
 import com.marketHub.marketplace.repositories.UserRepository;
@@ -10,13 +11,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 
 import java.security.Principal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -68,16 +71,60 @@ class ProductServiceTest {
 
     // ---------- Проверка listProducts ----------
 
-    // как реагирует если listProducts отправим пустой title
+    // как реагирует если listProducts отправим пустой title — он должен превратиться в null для репозитория
     @Test
-    void listProducts_blankTitle_returnsInStockNonDeletedProducts() {
+    void listProducts_blankTitle_normalizedToNull() {
         List<Product> expected = List.of(product(1, user(1, "a@a.com", false), 5));
-        when(productRepository.findByQuantityGreaterThanAndDeletedFalse(0)).thenReturn(expected);
+        when(productRepository.search(isNull(), isNull(), isNull(), isNull(), eq(Sort.unsorted()))).thenReturn(expected);
 
-        List<Product> result = productService.listProducts("  ");
+        List<Product> result = productService.listProducts("  ", null, null, null, null);
 
         assertThat(result).isEqualTo(expected);
-        verify(productRepository, never()).findByTitleContainingIgnoreCaseAndQuantityGreaterThanAndDeletedFalse(any(), anyInt());
+    }
+
+    // категория и диапазон цен должны прокидываться в repository как есть
+    @Test
+    void listProducts_categoryAndPriceRange_passedThroughToRepository() {
+        List<Product> expected = List.of(product(2, user(1, "a@a.com", false), 3));
+        when(productRepository.search(eq("iphone"), eq(Category.ELECTRONICS), eq(100), eq(500), eq(Sort.unsorted())))
+                .thenReturn(expected);
+
+        List<Product> result = productService.listProducts("iphone", Category.ELECTRONICS, 100, 500, null);
+
+        assertThat(result).isEqualTo(expected);
+    }
+
+    // sort=price_asc должен превратиться в Sort по возрастанию цены
+    @Test
+    void listProducts_sortPriceAsc_buildsAscendingSort() {
+        when(productRepository.search(any(), any(), any(), any(), eq(Sort.by(Sort.Direction.ASC, "price"))))
+                .thenReturn(List.of());
+
+        productService.listProducts(null, null, null, null, "price_asc");
+
+        verify(productRepository).search(isNull(), isNull(), isNull(), isNull(), eq(Sort.by(Sort.Direction.ASC, "price")));
+    }
+
+    // sort=price_desc должен превратиться в Sort по убыванию цены
+    @Test
+    void listProducts_sortPriceDesc_buildsDescendingSort() {
+        when(productRepository.search(any(), any(), any(), any(), eq(Sort.by(Sort.Direction.DESC, "price"))))
+                .thenReturn(List.of());
+
+        productService.listProducts(null, null, null, null, "price_desc");
+
+        verify(productRepository).search(isNull(), isNull(), isNull(), isNull(), eq(Sort.by(Sort.Direction.DESC, "price")));
+    }
+
+    // неизвестное значение sort не должно ломаться — просто без сортировки
+    @Test
+    void listProducts_unknownSort_fallsBackToUnsorted() {
+        when(productRepository.search(any(), any(), any(), any(), eq(Sort.unsorted())))
+                .thenReturn(List.of());
+
+        productService.listProducts(null, null, null, null, "garbage");
+
+        verify(productRepository).search(isNull(), isNull(), isNull(), isNull(), eq(Sort.unsorted()));
     }
 
     // ---------- deleteProducts (только владелец/админ) ----------

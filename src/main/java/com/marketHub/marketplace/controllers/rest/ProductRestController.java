@@ -2,6 +2,7 @@ package com.marketHub.marketplace.controllers.rest;
 
 import com.marketHub.marketplace.dto.ProductDto;
 import com.marketHub.marketplace.models.Product;
+import com.marketHub.marketplace.models.enums.Category;
 import com.marketHub.marketplace.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -14,8 +15,16 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
+
+/*
+* Разработка закончена 08.09.26
+* Возможно будет возобновлена после разработки андроид приложения
+*
+* */
+
 // REST-версия каталога товаров поверх того же ProductService, что и обычный сайт —
 // одна и та же бизнес-логика (владелец/админ, soft-delete, остаток) для веба и API
+
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
@@ -23,10 +32,14 @@ public class ProductRestController {
 
     private final ProductService productService;
 
-    // начальная страница, выгрузи все товары
+    // начальная страница, выгрузи все товары — те же фильтры/сортировка, что и в каталоге на сайте
     @GetMapping
-    public List<ProductDto> list(@RequestParam(required = false) String title) {
-        return productService.listProducts(title).stream().map(ProductDto::from).toList();
+    public List<ProductDto> list(@RequestParam(required = false) String title,
+                                  @RequestParam(required = false) Category category,
+                                  @RequestParam(required = false) Integer minPrice,
+                                  @RequestParam(required = false) Integer maxPrice,
+                                  @RequestParam(required = false) String sort) {
+        return productService.listProducts(title, category, minPrice, maxPrice, sort).stream().map(ProductDto::from).toList();
     }
 
     //сам продукт

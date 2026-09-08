@@ -47,6 +47,15 @@
                 <label for="city">Город</label>
                 <input type="text" id="city" name="city" required>
             </div>
+            <div class="form-field">
+                <label for="category">Категория</label>
+                <select id="category" name="category" required>
+                    <option value="" disabled selected>Выберите категорию</option>
+                    <#list categories as category>
+                        <option value="${category}">${c.categoryLabel(category)}</option>
+                    </#list>
+                </select>
+            </div>
             <div class="form-field span-2">
                 <label for="files">Фото (до 10 шт.)</label>
                 <input type="file" id="files" name="files" accept="image/*" multiple required data-max-files="10" data-preview="filesPreview">

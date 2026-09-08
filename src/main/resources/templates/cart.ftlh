@@ -24,9 +24,9 @@
             <div class="cart-card">
                 <a class="cart-card__photo" href="/product/${item.product.id}">
                     <#if item.product.previewImageId??>
-                        <img src="/images/${item.product.previewImageId}" alt="${item.product.title}">
+                        <img src="/images/${item.product.previewImageId?c}" alt="${item.product.title}">
                     <#elseif item.product.images?has_content>
-                        <img src="/images/${item.product.images[0].id}" alt="${item.product.title}">
+                        <img src="/images/${item.product.images[0].id?c}" alt="${item.product.title}">
                     <#else>
                         <svg class="icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="7" y="10" width="34" height="28" rx="3"/><circle cx="17" cy="20" r="3"/><path d="M11 33l10-9 8 7 6-6 8 7"/>

@@ -12,7 +12,7 @@
     <div class="chat-window">
         <div class="chat-header">
             <#if otherUser.avatar??>
-                <span class="account-avatar"><img src="/images/${otherUser.avatar.id}" alt=""></span>
+                <span class="account-avatar"><img src="/images/${otherUser.avatar.id?c}" alt=""></span>
             <#else>
                 <span class="account-avatar">${otherUser.name?substring(0,1)?upper_case}</span>
             </#if>

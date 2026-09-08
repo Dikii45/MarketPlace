@@ -1,5 +1,6 @@
 package com.marketHub.marketplace.models;
 
+import com.marketHub.marketplace.models.enums.Category;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,6 +30,8 @@ public class Product {
     private int price;
     @Column(name = "city")
     private String city;
+    @Enumerated(EnumType.STRING)
+    private Category category;
 
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "product")

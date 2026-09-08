@@ -1,6 +1,7 @@
 package com.marketHub.marketplace.controllers;
 
 import com.marketHub.marketplace.models.User;
+import com.marketHub.marketplace.models.enums.Category;
 import com.marketHub.marketplace.services.CartItemService;
 import com.marketHub.marketplace.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -32,5 +33,11 @@ public class GlobalModelAttributes {
         if (user != null) {
             userService.touch(user);
         }
+    }
+
+    // список категорий для форм создания товара и фильтра в каталоге
+    @ModelAttribute("categories")
+    public Category[] categories() {
+        return Category.values();
     }
 }

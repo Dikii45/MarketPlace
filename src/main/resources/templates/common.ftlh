@@ -32,7 +32,7 @@
             <details class="account-menu">
                 <summary class="account-trigger" aria-label="Аккаунт">
                     <#if currentUser.avatar??>
-                        <span class="account-avatar"><img src="/images/${currentUser.avatar.id}" alt=""></span>
+                        <span class="account-avatar"><img src="/images/${currentUser.avatar.id?c}" alt=""></span>
                     <#else>
                         <span class="account-avatar">${initial}</span>
                     </#if>
@@ -40,7 +40,7 @@
                 <div class="account-menu__panel">
                     <div class="account-menu__head">
                         <#if currentUser.avatar??>
-                            <span class="account-avatar account-avatar--lg"><img src="/images/${currentUser.avatar.id}" alt=""></span>
+                            <span class="account-avatar account-avatar--lg"><img src="/images/${currentUser.avatar.id?c}" alt=""></span>
                         <#else>
                             <span class="account-avatar account-avatar--lg">${initial}</span>
                         </#if>
@@ -102,9 +102,9 @@
 <a class="card" href="/product/${product.id}">
     <div class="card__photo">
         <#if product.previewImageId??>
-            <img src="/images/${product.previewImageId}" alt="${product.title}">
+            <img src="/images/${product.previewImageId?c}" alt="${product.title}">
         <#elseif product.images?has_content>
-            <img src="/images/${product.images[0].id}" alt="${product.title}">
+            <img src="/images/${product.images[0].id?c}" alt="${product.title}">
         <#else>
             <svg class="icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="7" y="10" width="34" height="28" rx="3"/><circle cx="17" cy="20" r="3"/><path d="M11 33l10-9 8 7 6-6 8 7"/>
@@ -123,6 +123,16 @@
     </div>
 </a>
 </#macro>
+
+<#function categoryLabel category>
+    <#if !category??><#return ""></#if>
+    <#local key = category?string>
+    <#if key == "ELECTRONICS"><#return "Электроника"></#if>
+    <#if key == "CLOTHES"><#return "Одежда"></#if>
+    <#if key == "HOME"><#return "Дом"></#if>
+    <#if key == "AUTO"><#return "Авто"></#if>
+    <#return "Другое">
+</#function>
 
 <#macro footer>
 <footer class="site-footer">

@@ -24,8 +24,9 @@
 ## Возможности
 
 - Регистрация и вход, роли пользователей (обычный пользователь / админ)
-- Публикация товара с загрузкой нескольких изображений, учёт остатка (quantity)
-- Поиск товаров по названию, скрытие товаров с нулевым остатком
+- Публикация товара с загрузкой нескольких изображений, учёт остатка (quantity) и категорией
+- Поиск товаров по названию, фильтры по категории и диапазону цен, сортировка по цене — на главной и в поиске
+- Скрытие товаров с нулевым остатком
 - Корзина: добавление, изменение количества, удаление
 - Оформление заказа: адрес доставки, способ оплаты (наличными / картой)
 - Заказы разбиваются по продавцам (`OrderItem`), у каждой позиции свой статус:
@@ -37,6 +38,7 @@
 - Чат между покупателем и продавцом прямо на сайте (AJAX-опрос, без перезагрузки страницы)
 - Регистрация: email только с популярных почтовых сервисов, телефон — только российский формат
 - REST API для каталога товаров с авторизацией по JWT (см. ниже) — задел под будущее внешнее приложение
+- На пустой базе (например, самый первый запуск после клонирования) каталог сам наполняется демо-товарами с фото, чтобы сайт не выглядел пустым
 
 ## Запуск через Docker (проще всего)
 
@@ -48,7 +50,7 @@ cd MarketPlace
 docker compose up --build
 ```
 
-Первый запуск соберёт образ и поднимет MySQL — займёт пару минут. Дальше сайт на [http://localhost:8081](http://localhost:8081). Данные MySQL сохраняются между перезапусками в volume `db-data`; `docker compose down -v` — полностью снести и начать с чистой базы.
+Первый запуск соберёт образ и поднимет MySQL — займёт пару минут. Дальше сайт на [http://localhost:8081](http://localhost:8081). На пустой базе приложение само создаёт ~45 демо-товаров с фото (см. «Возможности» выше), так что каталог сразу не пустой. Данные MySQL сохраняются между перезапусками в volume `db-data`; `docker compose down -v` — полностью снести и начать с чистой базы.
 
 ## Запуск локально (без Docker)
 
@@ -63,11 +65,12 @@ docker compose up --build
    spring.datasource.password=<пароль>
    ```
    Схема создаётся/обновляется автоматически (`spring.jpa.hibernate.ddl-auto=update`).
-3. Запустить приложение (нужен JDK 21):
+3. Запустить приложение (нужен JDK 21) — больше ничего ставить не надо, достаточно самого файла `mvnw` из репозитория:
    ```bash
-   ./mvnw spring-boot:run
+   ./mvnw spring-boot:run       # Linux/macOS/Git Bash
+   mvnw.cmd spring-boot:run     # Windows (cmd или PowerShell)
    ```
-4. Открыть [http://localhost:8081](http://localhost:8081).
+4. Открыть [http://localhost:8081](http://localhost:8081). На пустой базе каталог сам наполнится демо-товарами при первом старте.
 
 ## REST API
 
@@ -89,7 +92,7 @@ curl -X DELETE http://localhost:8081/api/products/123 \
 | Метод | Путь | Доступ |
 |---|---|---|
 | POST | `/api/auth/login` | все |
-| GET | `/api/products` | все (`?title=` — поиск) |
+| GET | `/api/products` | все (`?title=&category=&minPrice=&maxPrice=&sort=price_asc\|price_desc`) |
 | GET | `/api/products/{id}` | все |
 | POST | `/api/products` | по токену |
 | DELETE | `/api/products/{id}` | по токену, владелец/админ |
@@ -101,10 +104,10 @@ curl -X DELETE http://localhost:8081/api/products/123 \
 ./mvnw test
 ```
 
-62+ тестов на четырёх уровнях:
+60+ тестов на четырёх уровнях:
 
 - **Unit** (`ProductServiceTest`, `CartItemServiceTest`, `OrderServiceTest`, `UserServiceTest`) — бизнес-логика на моках (Mockito), без Spring-контекста и БД
-- **Repository** (`@DataJpaTest`) — что derived-методы Spring Data реально фильтруют то, что обещает их имя
+- **Repository** (`@DataJpaTest`) — что `ProductRepository.search()` реально фильтрует по названию/категории/цене и сортирует так, как ожидается
 - **Integration** (`CheckoutFlowIntegrationTest`) — полный путь товар → корзина → checkout → списание остатка → `Order`/`OrderItem`, на реальных бинах поверх H2
 - **Controller** (`ProductControllerSecurityTest`) — проверка авторизации через настоящий HTTP-слой (MockMvc + Spring Security)
 
@@ -125,6 +128,7 @@ controllers/       — HTTP-эндпоинты сайта (товары, кор�
 controllers/rest/  — REST-контроллеры API (/api/**)
 dto/                — плоские объекты для JSON-ответов API
 security/          — JwtService и JwtAuthenticationFilter
+seed/              — автонаполнение пустой БД демо-товарами при первом запуске
 services/          — бизнес-логика
 repositories/      — Spring Data JPA репозитории
 models/            — сущности (Product, User, CartItem, Order, OrderItem, ChatMessage, Image...)
